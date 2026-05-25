@@ -21,16 +21,17 @@ import NotFoundPage from './pages/NotFoundPage';
 function App() {
   const { isAuthenticated, setAuth, clearAuth } = useAuthStore();
 
-  // Attempt silent refresh on mount
+  // Silently attempt token refresh on page load.
+  // No toast on failure — it simply means the user is not logged in.
   useEffect(() => {
     const initAuth = async () => {
-      if (!isAuthenticated) {
-        try {
-          const { data } = await api.post('/auth/refresh');
-          setAuth(data.user, data.accessToken);
-        } catch {
-          clearAuth();
-        }
+      if (isAuthenticated) return;
+      try {
+        const { data } = await api.post('/auth/refresh');
+        setAuth(data.user, data.accessToken);
+      } catch {
+        // Expected when user is not logged in — do nothing
+        clearAuth();
       }
     };
     initAuth();
