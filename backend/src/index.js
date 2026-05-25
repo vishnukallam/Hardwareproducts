@@ -30,7 +30,6 @@ console.log('✅ Allowed origins:', allowedOrigins);
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (Postman, curl, server-to-server)
     if (!origin) return callback(null, true);
     const normalized = origin.replace(/\/$/, '');
     if (allowedOrigins.includes(normalized)) {
@@ -48,21 +47,21 @@ app.use(cors({
 // Handle preflight requests for all routes
 app.options('*', cors());
 
-// Rate limiting
+// Rate limiting — general API
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 200,
   message: { error: 'Too many requests, please try again later.' }
 });
 
-const authLimiter = rateLimit({
+// Strict limiter only for Google sign-in — NOT applied to /refresh
+const googleSignInLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
-  message: { error: 'Too many auth attempts, please try again later.' }
+  message: { error: 'Too many sign-in attempts, please try again later.' }
 });
 
 app.use('/api/', limiter);
-app.use('/api/auth/', authLimiter);
 
 // Body parsers
 app.use(express.json({ limit: '10mb' }));
@@ -73,6 +72,9 @@ app.use(cookieParser());
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Apply strict rate limit only to Google sign-in endpoint
+app.use('/api/auth/google', googleSignInLimiter);
 
 // Routes
 app.use('/api/auth', authRoutes);
