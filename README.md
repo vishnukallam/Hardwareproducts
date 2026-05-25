@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # ⚡ NEXUS HARDWARE — Full-Stack Ecommerce
 
 A production-ready UPI-only ecommerce platform for premium PC hardware components.
