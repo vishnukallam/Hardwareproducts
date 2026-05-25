@@ -1,0 +1,304 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Rajdhani', sans-serif;
+    background-color: #0A0A0F;
+    color: #E6E1E5;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #12121A;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #7C4DFF;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #9B6FFF;
+  }
+}
+
+@layer components {
+  /* Gaming Background */
+  .gaming-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: #0A0A0F;
+    overflow: hidden;
+  }
+
+  .gaming-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(124, 77, 255, 0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 90%, rgba(3, 218, 198, 0.1) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 50% 50%, rgba(255, 107, 53, 0.05) 0%, transparent 60%);
+    animation: gradientShift 15s ease infinite;
+    background-size: 200% 200%;
+  }
+
+  .gaming-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124, 77, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124, 77, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridScroll 20s linear infinite;
+  }
+
+  @keyframes gridScroll {
+    0% { background-position: 0 0; }
+    100% { background-position: 50px 50px; }
+  }
+
+  /* Scan Line */
+  .scan-line {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(124, 77, 255, 0.6), transparent);
+    animation: scanLine 8s linear infinite;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* Material 3 Cards */
+  .m3-card {
+    @apply bg-surface-1 rounded-m3-lg border border-white/5 transition-all duration-300;
+    backdrop-filter: blur(20px);
+  }
+
+  .m3-card:hover {
+    @apply border-primary/30;
+    box-shadow: 0 0 20px rgba(124, 77, 255, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .m3-card-elevated {
+    @apply m3-card;
+    box-shadow: 0px 4px 8px 3px rgba(0,0,0,0.15), 0px 1px 3px rgba(0,0,0,0.3);
+  }
+
+  /* M3 Filled Button */
+  .m3-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-m3-full 
+           bg-primary text-white font-display font-semibold text-sm tracking-wider
+           transition-all duration-200 hover:shadow-glow-primary active:scale-95
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* M3 Tonal Button */
+  .m3-btn-tonal {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-m3-full
+           bg-primary-container text-primary-light font-body font-semibold text-sm
+           transition-all duration-200 hover:bg-primary/20 active:scale-95
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* M3 Outlined Button */
+  .m3-btn-outline {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-m3-full
+           border border-outline text-on-surface-variant font-body font-semibold text-sm
+           transition-all duration-200 hover:border-primary hover:text-primary active:scale-95
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* M3 Text Button */
+  .m3-btn-text {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-m3-full
+           text-primary font-body font-semibold text-sm
+           transition-all duration-200 hover:bg-primary/10 active:scale-95;
+  }
+
+  /* M3 Input Field */
+  .m3-input {
+    @apply w-full bg-surface-2 border border-outline/50 rounded-m3-md px-4 py-3
+           text-on-surface font-body text-base placeholder-on-surface-variant/50
+           focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary
+           transition-all duration-200;
+  }
+
+  /* M3 Select */
+  .m3-select {
+    @apply m3-input appearance-none cursor-pointer;
+  }
+
+  /* Chip / Badge */
+  .m3-chip {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-m3-full text-xs font-body font-semibold;
+  }
+
+  /* Category chips */
+  .chip-gpu { @apply m3-chip bg-purple-500/20 text-purple-300 border border-purple-500/30; }
+  .chip-cpu { @apply m3-chip bg-blue-500/20 text-blue-300 border border-blue-500/30; }
+  .chip-ram { @apply m3-chip bg-green-500/20 text-green-300 border border-green-500/30; }
+  .chip-fan { @apply m3-chip bg-orange-500/20 text-orange-300 border border-orange-500/30; }
+
+  /* Status chips */
+  .chip-paid { @apply m3-chip bg-green-500/20 text-green-300 border border-green-500/30; }
+  .chip-pending { @apply m3-chip bg-yellow-500/20 text-yellow-300 border border-yellow-500/30; }
+  .chip-failed { @apply m3-chip bg-red-500/20 text-red-300 border border-red-500/30; }
+  .chip-confirmed { @apply m3-chip bg-blue-500/20 text-blue-300 border border-blue-500/30; }
+  .chip-shipped { @apply m3-chip bg-indigo-500/20 text-indigo-300 border border-indigo-500/30; }
+  .chip-delivered { @apply m3-chip bg-emerald-500/20 text-emerald-300 border border-emerald-500/30; }
+
+  /* Glow text */
+  .text-glow-primary { text-shadow: 0 0 20px rgba(124, 77, 255, 0.8); }
+  .text-glow-secondary { text-shadow: 0 0 20px rgba(3, 218, 198, 0.8); }
+  .text-glow-tertiary { text-shadow: 0 0 20px rgba(255, 107, 53, 0.8); }
+
+  /* M3 Shapes - ExperimentalMaterial3Expressive */
+  .shape-squircle {
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  }
+
+  .shape-pill {
+    border-radius: 50px;
+  }
+
+  .shape-rounded-square {
+    border-radius: 20%;
+  }
+
+  /* Loading shimmer */
+  .shimmer {
+    background: linear-gradient(90deg, #1A1A26 0%, #2A2A40 50%, #1A1A26 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s linear infinite;
+  }
+
+  /* Navigation */
+  .nav-glass {
+    background: rgba(10, 10, 15, 0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  /* Product card image */
+  .product-img-wrap {
+    @apply relative overflow-hidden rounded-m3-md bg-surface-2;
+    aspect-ratio: 16/10;
+  }
+
+  .product-img-wrap img {
+    @apply w-full h-full object-cover transition-transform duration-500;
+  }
+
+  .m3-card:hover .product-img-wrap img {
+    transform: scale(1.05);
+  }
+
+  /* UPI app button */
+  .upi-btn {
+    @apply flex flex-col items-center gap-2 p-4 rounded-m3-lg border-2 border-transparent
+           bg-surface-2 transition-all duration-200 cursor-pointer
+           hover:border-primary/50 hover:bg-primary/10;
+  }
+
+  .upi-btn.selected {
+    @apply border-primary bg-primary/15;
+    box-shadow: 0 0 20px rgba(124, 77, 255, 0.3);
+  }
+
+  /* Tracking timeline */
+  .track-step {
+    @apply flex items-start gap-4 relative;
+  }
+
+  .track-step::before {
+    content: '';
+    @apply absolute left-5 top-10 w-0.5 h-full bg-surface-3;
+  }
+
+  .track-step:last-child::before {
+    display: none;
+  }
+
+  .track-dot {
+    @apply w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10;
+  }
+
+  .track-dot.active {
+    @apply bg-primary;
+    box-shadow: 0 0 15px rgba(124, 77, 255, 0.6);
+  }
+
+  .track-dot.done {
+    @apply bg-secondary;
+    box-shadow: 0 0 15px rgba(3, 218, 198, 0.5);
+  }
+
+  .track-dot.pending {
+    @apply bg-surface-3 border border-outline;
+  }
+
+  /* Page transitions */
+  .page-enter {
+    animation: pageIn 0.4s ease-out;
+  }
+
+  @keyframes pageIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Particle canvas */
+  .particle-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+
+  .bg-gradient-gaming {
+    background: linear-gradient(135deg, #7C4DFF 0%, #03DAC6 50%, #FF6B35 100%);
+  }
+
+  .border-gradient-gaming {
+    border-image: linear-gradient(135deg, #7C4DFF, #03DAC6) 1;
+  }
+
+  .font-display { font-family: 'Orbitron', sans-serif; }
+  .font-body { font-family: 'Rajdhani', sans-serif; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+}
