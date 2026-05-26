@@ -13,7 +13,7 @@ import { authenticate } from '../middleware/auth.js';
 const router = express.Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// POST /api/auth/google - Google Sign-In
+// POST /api/auth/google
 router.post('/google', async (req, res) => {
   try {
     const { credential } = req.body;
@@ -21,7 +21,6 @@ router.post('/google', async (req, res) => {
       return res.status(400).json({ error: 'Google credential required' });
     }
 
-    // Verify Google ID token
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID
@@ -30,7 +29,7 @@ router.post('/google', async (req, res) => {
     const payload = ticket.getPayload();
     const { sub: googleId, email, name, picture } = payload;
 
-    // Upsert user
+    // Find existing user by googleId OR email
     let user = await prisma.user.findFirst({
       where: { OR: [{ googleId }, { email }] }
     });
@@ -38,12 +37,7 @@ router.post('/google', async (req, res) => {
     if (user) {
       user = await prisma.user.update({
         where: { id: user.id },
-        data: {
-          googleId,
-          name,
-          avatar: picture,
-          updatedAt: new Date()
-        }
+        data: { googleId, name, avatar: picture }
       });
     } else {
       user = await prisma.user.create({
@@ -54,7 +48,6 @@ router.post('/google', async (req, res) => {
     const accessToken = generateAccessToken(user.id);
     const refreshToken = generateRefreshToken(user.id);
 
-    // Store refresh token hash in DB
     await prisma.user.update({
       where: { id: user.id },
       data: { refreshToken }
@@ -62,7 +55,7 @@ router.post('/google', async (req, res) => {
 
     setRefreshTokenCookie(res, refreshToken);
 
-    res.json({
+    return res.json({
       accessToken,
       user: {
         id: user.id,
@@ -73,11 +66,11 @@ router.post('/google', async (req, res) => {
     });
   } catch (err) {
     console.error('Google auth error:', err);
-    res.status(401).json({ error: 'Google authentication failed' });
+    return res.status(401).json({ error: 'Google authentication failed' });
   }
 });
 
-// POST /api/auth/refresh - Refresh access token
+// POST /api/auth/refresh
 router.post('/refresh', async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
@@ -106,7 +99,7 @@ router.post('/refresh', async (req, res) => {
 
     setRefreshTokenCookie(res, newRefreshToken);
 
-    res.json({
+    return res.json({
       accessToken: newAccessToken,
       user: {
         id: user.id,
@@ -117,7 +110,7 @@ router.post('/refresh', async (req, res) => {
     });
   } catch (err) {
     clearRefreshTokenCookie(res);
-    res.status(401).json({ error: 'Token refresh failed' });
+    return res.status(401).json({ error: 'Token refresh failed' });
   }
 });
 
@@ -129,15 +122,15 @@ router.post('/logout', authenticate, async (req, res) => {
       data: { refreshToken: null }
     });
     clearRefreshTokenCookie(res);
-    res.json({ message: 'Logged out successfully' });
+    return res.json({ message: 'Logged out successfully' });
   } catch (err) {
-    res.status(500).json({ error: 'Logout failed' });
+    return res.status(500).json({ error: 'Logout failed' });
   }
 });
 
-// GET /api/auth/me - Get current user
+// GET /api/auth/me
 router.get('/me', authenticate, (req, res) => {
-  res.json({ user: req.user });
+  return res.json({ user: req.user });
 });
 
 export default router;
