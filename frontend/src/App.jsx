@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import api from './lib/api';
 
@@ -21,8 +21,7 @@ import NotFoundPage from './pages/NotFoundPage';
 function App() {
   const { isAuthenticated, setAuth, clearAuth } = useAuthStore();
 
-  // Silently attempt token refresh on page load.
-  // No toast on failure — it simply means the user is not logged in.
+  // Silent token refresh on page load — never shows toast on failure
   useEffect(() => {
     const initAuth = async () => {
       if (isAuthenticated) return;
@@ -30,7 +29,7 @@ function App() {
         const { data } = await api.post('/auth/refresh');
         setAuth(data.user, data.accessToken);
       } catch {
-        // Expected when user is not logged in — do nothing
+        // Normal for logged-out users — do nothing silently
         clearAuth();
       }
     };
@@ -48,7 +47,6 @@ function App() {
           <Route path="/products/:id" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
 
-          {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/payment/:orderId" element={<PaymentPage />} />
