@@ -9,7 +9,7 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' }
 });
 
-// Request interceptor — attach access token
+// Attach access token to every request
 api.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().accessToken;
@@ -21,7 +21,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor — handle token refresh
+// Auto-refresh access token on 401
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -37,6 +37,11 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // Don't retry refresh endpoint itself — avoids infinite loop
+    if (originalRequest.url?.includes('/auth/refresh')) {
+      return Promise.reject(error);
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
@@ -60,14 +65,16 @@ api.interceptors.response.use(
 
         const { accessToken, user } = data;
         useAuthStore.getState().setAuth(user, accessToken);
-
         processQueue(null, accessToken);
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
         useAuthStore.getState().clearAuth();
-        window.location.href = '/';
+        // Only redirect if not already on home
+        if (window.location.pathname !== '/') {
+          window.location.href = '/';
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
