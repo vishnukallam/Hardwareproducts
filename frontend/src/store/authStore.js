@@ -19,7 +19,8 @@ export const useAuthStore = create(
     }),
     {
       name: 'nexus-auth',
-      partialState: (state) => ({ user: state.user }) // don't persist token
+      // Only persist user info, never the access token
+      partialize: (state) => ({ user: state.user }),
     }
   )
 );
