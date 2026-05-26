@@ -20,19 +20,18 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Scroll shadow on navbar
+  // Navbar scroll shadow
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Step 1: Wait for Google SDK to load, then initialize
+  // Step 1: Poll for Google SDK load then initialize
   useEffect(() => {
-    if (isAuthenticated) return;
+    if (isAuthenticated || !GOOGLE_CLIENT_ID) return;
 
     const initGoogle = () => {
-      if (!window.google?.accounts?.id) return;
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: handleGoogleCredential,
@@ -43,10 +42,8 @@ const Navbar = () => {
     };
 
     if (window.google?.accounts?.id) {
-      // SDK already loaded
       initGoogle();
     } else {
-      // Poll every 200ms until SDK loads from the <script> in index.html
       const interval = setInterval(() => {
         if (window.google?.accounts?.id) {
           clearInterval(interval);
@@ -57,7 +54,7 @@ const Navbar = () => {
     }
   }, [isAuthenticated]);
 
-  // Step 2: Once SDK is ready and the div ref is mounted, render the button
+  // Step 2: Render the button once SDK ready + ref mounted
   useEffect(() => {
     if (!googleReady || !googleBtnRef.current || isAuthenticated) return;
     window.google.accounts.id.renderButton(googleBtnRef.current, {
@@ -70,7 +67,6 @@ const Navbar = () => {
     });
   }, [googleReady, isAuthenticated]);
 
-  // Called by Google SDK after user picks account
   const handleGoogleCredential = async (response) => {
     try {
       const { data } = await api.post('/auth/google', {
@@ -80,8 +76,7 @@ const Navbar = () => {
       toast.success(`Welcome, ${data.user.name}! 🚀`);
     } catch (err) {
       console.error('Google sign-in error:', err);
-      const msg = err.response?.data?.error || 'Sign-in failed. Please try again.';
-      toast.error(msg);
+      toast.error(err.response?.data?.error || 'Sign-in failed. Please try again.');
     }
   };
 
@@ -130,7 +125,7 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* Desktop nav links */}
+          {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map(({ to, label }) => (
               <Link
@@ -149,14 +144,13 @@ const Navbar = () => {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
-
-            {/* Currency selector */}
+            {/* Currency */}
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
               className="hidden sm:block bg-surface-2 border border-outline/30 rounded-m3-md px-2 py-1.5 text-xs font-mono text-on-surface-variant focus:outline-none focus:border-primary cursor-pointer"
             >
-              {Object.entries(CURRENCIES).map(([code, { symbol, flag }]) => (
+              {Object.entries(CURRENCIES).map(([code, { flag }]) => (
                 <option key={code} value={code}>{flag} {code}</option>
               ))}
             </select>
@@ -202,11 +196,7 @@ const Navbar = () => {
                 <AnimatePresence>
                   {userMenuOpen && (
                     <>
-                      {/* Backdrop to close menu on outside click */}
-                      <div
-                        className="fixed inset-0 z-40"
-                        onClick={() => setUserMenuOpen(false)}
-                      />
+                      <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
                       <motion.div
                         initial={{ opacity: 0, scale: 0.9, y: -10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -248,11 +238,8 @@ const Navbar = () => {
                 </AnimatePresence>
               </div>
             ) : (
-              /* Google renders its own button into this div via renderButton() */
-              <div
-                ref={googleBtnRef}
-                style={{ minWidth: '130px', minHeight: '36px' }}
-              />
+              /* Google SDK renders its official button here */
+              <div ref={googleBtnRef} style={{ minWidth: '130px', minHeight: '36px' }} />
             )}
 
             {/* Mobile hamburger */}
@@ -289,7 +276,6 @@ const Navbar = () => {
                   {label}
                 </Link>
               ))}
-              {/* Currency on mobile */}
               <div className="px-4 py-2">
                 <select
                   value={currency}
