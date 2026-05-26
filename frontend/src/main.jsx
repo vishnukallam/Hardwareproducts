@@ -12,6 +12,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Toaster
         position="top-right"
         toastOptions={{
+          duration: 3000,
           style: {
             background: '#1A1A26',
             color: '#E6E1E5',
@@ -24,6 +25,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           },
           error: {
             iconTheme: { primary: '#CF6679', secondary: '#0A0A0F' },
+            duration: 4000,
           },
         }}
       />
