@@ -21,7 +21,7 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
-// CORS — strip trailing slashes so https://foo.com/ and https://foo.com both match
+// CORS — strip trailing slashes to avoid mismatch
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim().replace(/\/$/, ''))
   : ['http://localhost:5173'];
@@ -35,7 +35,7 @@ app.use(cors({
     if (allowedOrigins.includes(normalized)) {
       callback(null, true);
     } else {
-      console.warn(`🚫 CORS blocked origin: ${origin}`);
+      console.warn(`🚫 CORS blocked: ${origin}`);
       callback(new Error(`CORS: origin ${origin} not allowed`));
     }
   },
@@ -44,17 +44,17 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token']
 }));
 
-// Handle preflight requests for all routes
+// Handle preflight for all routes
 app.options('*', cors());
 
-// Rate limiting — general API
+// General rate limiter
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 200,
   message: { error: 'Too many requests, please try again later.' }
 });
 
-// Strict limiter only for Google sign-in — NOT applied to /refresh
+// Strict limiter ONLY for Google sign-in — NOT refresh
 const googleSignInLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
@@ -73,7 +73,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Apply strict rate limit only to Google sign-in endpoint
+// Apply strict limit only to google sign-in
 app.use('/api/auth/google', googleSignInLimiter);
 
 // Routes
