@@ -9,7 +9,7 @@ const products = [
     description: 'The ultimate gaming GPU with Ada Lovelace architecture. Dominates 4K gaming and AI workloads.',
     category: 'GPU',
     price: 159999,
-    imageUrl: 'https://images.unsplash.com/photo-1591488320449-011701bb6704?w=800',
+    imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkW_QcQDURuyTZlHgEdPLbf1azKI1YxhRCMA&s',
     brand: 'NVIDIA',
     stock: 15,
     specs: {
