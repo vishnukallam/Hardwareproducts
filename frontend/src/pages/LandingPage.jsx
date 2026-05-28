@@ -39,7 +39,7 @@ const LandingPage = () => {
   return (
     <div className="pt-16 page-enter">
       {/* Hero */}
-      <section className="min-h-[90vh] flex flex-col items-center justify-center text-center px-4 relative overflow-hidden">
+      <section className="min-h-screen flex flex-col items-center justify-center text-center px-4 pt-8 pb-16 relative">
         {/* Glowing orb behind hero */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-3xl pointer-events-none" />
 
@@ -87,7 +87,7 @@ const LandingPage = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.6 }}
-          className="absolute bottom-12 left-0 right-0 flex justify-center"
+          className="relative mt-16 flex justify-center"
         >
           <div className="flex gap-8 sm:gap-16">
             {STATS.map(({ value, label }) => (
