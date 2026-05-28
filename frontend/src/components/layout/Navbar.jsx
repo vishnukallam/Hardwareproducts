@@ -12,51 +12,52 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const Navbar = () => {
   const { user, isAuthenticated, setAuth, clearAuth } = useAuthStore();
   const { getItemCount, currency, setCurrency } = useCartStore();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen]       = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [googleReady, setGoogleReady] = useState(false);
+  const [scrolled, setScrolled]       = useState(false);
+  const [sdkReady, setSdkReady]       = useState(false);
   const googleBtnRef = useRef(null);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const sdkInitialized = useRef(false);
+  const navigate  = useNavigate();
+  const location  = useLocation();
 
-  // Navbar scroll shadow
+  // Scroll shadow
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Step 1: Poll for Google SDK load then initialize
+  // Initialize Google SDK once
   useEffect(() => {
-    if (isAuthenticated || !GOOGLE_CLIENT_ID) return;
+    if (sdkInitialized.current || !GOOGLE_CLIENT_ID) return;
 
-    const initGoogle = () => {
+    const init = () => {
+      if (!window.google?.accounts?.id) return false;
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: handleGoogleCredential,
         auto_select: false,
         cancel_on_tap_outside: true,
       });
-      setGoogleReady(true);
+      sdkInitialized.current = true;
+      setSdkReady(true);
+      return true;
     };
 
-    if (window.google?.accounts?.id) {
-      initGoogle();
-    } else {
+    if (!init()) {
       const interval = setInterval(() => {
-        if (window.google?.accounts?.id) {
-          clearInterval(interval);
-          initGoogle();
-        }
+        if (init()) clearInterval(interval);
       }, 200);
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated]);
+  }, []);
 
-  // Step 2: Render the button once SDK ready + ref mounted
+  // Render button whenever: SDK ready AND user is NOT logged in AND ref exists
   useEffect(() => {
-    if (!googleReady || !googleBtnRef.current || isAuthenticated) return;
+    if (!sdkReady || isAuthenticated || !googleBtnRef.current) return;
+    // Clear div first to avoid double-render
+    googleBtnRef.current.innerHTML = '';
     window.google.accounts.id.renderButton(googleBtnRef.current, {
       type: 'standard',
       theme: 'filled_black',
@@ -65,7 +66,7 @@ const Navbar = () => {
       text: 'signin_with',
       logo_alignment: 'left',
     });
-  }, [googleReady, isAuthenticated]);
+  }, [sdkReady, isAuthenticated]);
 
   const handleGoogleCredential = async (response) => {
     try {
@@ -81,9 +82,7 @@ const Navbar = () => {
   };
 
   const handleLogout = async () => {
-    try {
-      await api.post('/auth/logout');
-    } catch {}
+    try { await api.post('/auth/logout'); } catch {}
     clearAuth();
     if (window.google?.accounts?.id) {
       window.google.accounts.id.disableAutoSelect();
@@ -95,10 +94,10 @@ const Navbar = () => {
 
   const cartCount = getItemCount();
   const navLinks = [
-    { to: '/products', label: 'Browse' },
-    { to: '/products?category=GPU', label: 'GPUs' },
-    { to: '/products?category=CPU', label: 'CPUs' },
-    { to: '/products?category=RAM', label: 'RAM' },
+    { to: '/products',                  label: 'Browse'  },
+    { to: '/products?category=GPU',     label: 'GPUs'    },
+    { to: '/products?category=CPU',     label: 'CPUs'    },
+    { to: '/products?category=RAM',     label: 'RAM'     },
     { to: '/products?category=COOLING_FAN', label: 'Cooling' },
   ];
 
@@ -169,11 +168,11 @@ const Navbar = () => {
               )}
             </Link>
 
-            {/* Auth */}
+            {/* Auth — conditionally render Google btn OR user avatar */}
             {isAuthenticated && user ? (
               <div className="relative">
                 <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  onClick={() => setUserMenuOpen(v => !v)}
                   className="flex items-center gap-2 p-1.5 rounded-m3-full hover:bg-white/5 transition-all"
                 >
                   {user.avatar ? (
@@ -238,13 +237,17 @@ const Navbar = () => {
                 </AnimatePresence>
               </div>
             ) : (
-              /* Google SDK renders its official button here */
-              <div ref={googleBtnRef} style={{ minWidth: '130px', minHeight: '36px' }} />
+              // Google SDK injects button into this div.
+              // The div is ONLY rendered when NOT authenticated.
+              <div
+                ref={googleBtnRef}
+                style={{ minWidth: '130px', minHeight: '36px' }}
+              />
             )}
 
             {/* Mobile hamburger */}
             <button
-              onClick={() => setMenuOpen(!menuOpen)}
+              onClick={() => setMenuOpen(v => !v)}
               className="md:hidden p-2 rounded-m3-md hover:bg-white/5"
               aria-label="Toggle menu"
             >
